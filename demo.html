@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>QRPerfect Demo</title>
+<link rel="modulepreload" href="qrperfect.worker.mjs" />
+<script type="module">
+import QRCode from "./qrperfect.mjs";
+
+function updateQRCode() {
+	const minVersion = document.getElementById("minVersion"),
+		maxVersion = document.getElementById("maxVersion");
+	if (!minVersion.checkValidity() || !maxVersion.checkValidity()) {
+		document.body.classList.add("error");
+		return;
+	}
+	var allowedECIs = 0;
+	for (let e = 3; e <= 31; ++e) {
+		const eci = document.getElementById("eci" + e);
+		if (eci && eci.checked) allowedECIs |= 1 << e;
+	}
+	const opts = {
+		minVersion: +minVersion.value,
+		maxVersion: +maxVersion.value,
+		minECLevel: document.getElementById("minECLevel").selectedOptions[0].value,
+		allowedECIs,
+		text: document.getElementById("text").value,
+	};
+	try {
+		new QRCode(opts).createCanvas().then(({ canvas, version, ecLevel, dataLen, mask, segments }) => {
+			document.body.classList.remove("error");
+			const existing = document.body.querySelector("canvas");
+			existing.parentNode.replaceChild(canvas, existing);
+			document.querySelector("h2").textContent = version + "-" + ecLevel;
+			document.getElementById("dataLen").textContent = dataLen;
+			document.getElementById("mask").textContent = mask;
+			document.getElementById("segments").value = segments.join("\n");
+		}, (error) => {
+			document.body.classList.add("error");
+		});
+	}
+	catch (e) {
+		document.body.classList.add("error");
+	}
+}
+
+addEventListener("DOMContentLoaded", (event) => {
+	const minVersion = document.getElementById("minVersion"), maxVersion = document.getElementById("maxVersion");
+	minVersion.addEventListener("input", function (event) {
+		if (+this.value >= 1 && +this.value <= 40 && +this.value > +maxVersion.value) maxVersion.value = this.value;
+	});
+	maxVersion.addEventListener("input", function (event) {
+		if (+this.value >= 1 && +this.value <= 40 && +this.value < +minVersion.value) minVersion.value = this.value;
+	});
+	minVersion.addEventListener("change", updateQRCode);
+	maxVersion.addEventListener("change", updateQRCode);
+	document.getElementById("minECLevel").addEventListener("change", updateQRCode);
+	for (let e = 3; e <= 31; ++e) {
+		const eci = document.getElementById("eci" + e);
+		if (eci) eci.addEventListener("change", updateQRCode);
+	}
+	document.getElementById("text").addEventListener("input", updateQRCode);
+	updateQRCode();
+});
+</script>
+<style>
+body, input, textarea { font-family: sans-serif; font-size: 12pt; }
+canvas { border: 1px solid gray; display: block; }
+label { margin-right: 1ex; white-space: nowrap; }
+label:last-child { margin-right: 0; }
+table { border-collapse: collapse; margin: auto; }
+td { padding: 1em; }
+tr { vertical-align: top; }
+textarea { box-sizing: border-box; width: 100%; }
+:invalid { border-color: red; }
+.error #output { display: none; }
+.error #error { display: revert; }
+#error { color: red; display: none; margin: 2em; text-align: center; }
+</style>
+</head>
+
+<body>
+<h1>QRPerfect Demo</h1>
+<p>
+<label for="minVersion">Minimum QR version: <input id="minVersion" type="number" size="2" min="1" max="40" required="required" value="1" /></label>
+<label for="maxVersion">Maximum QR version: <input id="maxVersion" type="number" size="2" min="1" max="40" required="required" value="40" /></label>
+<label for="minECLevel">Minimum EC level: <select id="minECLevel"><option>L</option><option>M</option><option>Q</option><option>H</option></select></label>
+</p>
+<p>Allowed ECIs:
+<label for="eci3"><input id="eci3" type="checkbox" checked="checked" />3 (Latin-1)</label>
+<label for="eci4"><input id="eci4" type="checkbox" checked="checked" />4 (Latin-2)</label>
+<label for="eci5"><input id="eci5" type="checkbox" checked="checked" />5 (Latin-3)</label>
+<label for="eci6"><input id="eci6" type="checkbox" checked="checked" />6 (Latin-4)</label>
+<label for="eci7"><input id="eci7" type="checkbox" checked="checked" />7 (Cyrillic)</label>
+<label for="eci8"><input id="eci8" type="checkbox" checked="checked" />8 (Arabic)</label>
+<label for="eci9"><input id="eci9" type="checkbox" checked="checked" />9 (Greek)</label>
+<label for="eci10"><input id="eci10" type="checkbox" checked="checked" />10 (Hebrew)</label>
+<label for="eci11"><input id="eci11" type="checkbox" checked="checked" />11 (Latin-5)</label>
+<label for="eci12"><input id="eci12" type="checkbox" checked="checked" />12 (Latin-6)</label>
+<label for="eci13"><input id="eci13" type="checkbox" checked="checked" />13 (Thai)</label>
+<label for="eci15"><input id="eci15" type="checkbox" checked="checked" />15 (Latin-7)</label>
+<label for="eci16"><input id="eci16" type="checkbox" checked="checked" />16 (Latin-8)</label>
+<label for="eci17"><input id="eci17" type="checkbox" checked="checked" />17 (Latin-9)</label>
+<label for="eci18"><input id="eci18" type="checkbox" checked="checked" />18 (Latin-10)</label>
+<label for="eci20"><input id="eci20" type="checkbox" checked="checked" />20 (Shift JIS)</label>
+<label for="eci21"><input id="eci21" type="checkbox" checked="checked" />21 (Windows-1250)</label>
+<label for="eci22"><input id="eci22" type="checkbox" checked="checked" />22 (Windows-1251)</label>
+<label for="eci23"><input id="eci23" type="checkbox" checked="checked" />23 (Windows-1252)</label>
+<label for="eci24"><input id="eci24" type="checkbox" checked="checked" />24 (Windows-1256)</label>
+<label for="eci26"><input id="eci26" type="checkbox" checked="checked" />26 (UTF-8)</label>
+<label for="eci28"><input id="eci28" type="checkbox" checked="checked" />28 (Big5)</label>
+<label for="eci29"><input id="eci29" type="checkbox" checked="checked" />29 (GB 2312)</label>
+<label for="eci30"><input id="eci30" type="checkbox" checked="checked" />30 (Korean)</label>
+<label for="eci31"><input id="eci31" type="checkbox" checked="checked" />31 (GBK)</label>
+</p>
+<p>Text content:<br /><textarea id="text" rows="3" cols="80">Déjà vu of crème brûlée crêpes 🥞 ΑΒΓΔΕ…АБВГД — アイウエオ</textarea></p>
+<div id="output">
+	<table><tr><td><canvas width="264" height="264"></canvas></td>
+	<td><h2></h2>
+	<div>Data: <span id="dataLen"></span> bits</div>
+	<div>Mask: <span id="mask"></span></div>
+	</td></tr></table>
+	<div>Mode segments:<br /><textarea id="segments" rows="20" cols="80" readonly="readonly"></textarea></div>
+</div>
+<p id="error">The given combination of parameters cannot produce a QR Code.</p>
+</body>
+
+</html>
