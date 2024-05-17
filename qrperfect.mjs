@@ -1,6 +1,6 @@
 const promises = [];
 
-const worker = new Worker("qrperfect.worker.mjs", { type: "module" });
+const worker = new Worker(new URL("./qrperfect.worker.mjs", import.meta.url), { type: "module" });
 worker.addEventListener("message", (event) => {
 	const p = promises.shift();
 	if (!p)
